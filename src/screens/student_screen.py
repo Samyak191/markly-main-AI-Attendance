@@ -109,7 +109,8 @@ def student_screen():
     st.space()
     st.space()
 
-    show_registration=False
+    if "show_registration" not in st.session_state:
+        st.session_state.show_registration = False
     photo_source=st.camera_input("Position your face in the center")
     if photo_source:
         img=np.array(Image.open(photo_source))
@@ -137,8 +138,8 @@ def student_screen():
                         st.rerun()
                 else:
                     st.info('Face not recognized! You might be a new student')
-                    show_registration=True
-    if show_registration:
+                    st.session_state.show_registration = True
+    if st.session_state.show_registration:
         with st.container(border=True):
             st.header('Register new Profile')
             new_name=st.text_input("Enter your name", placeholder="@Waron")
@@ -166,6 +167,7 @@ def student_screen():
                                 st.session_state.is_logged_in=True
                                 st.session_state.user_role='student'
                                 st.session_state.student_data= response_data[0]
+                                st.session_state.show_registration = False
                                 st.toast(f"Profile Created! Hi {new_name}")
                                 time.sleep(1)
                                 st.rerun()

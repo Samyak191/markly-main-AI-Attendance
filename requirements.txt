@@ -14,4 +14,5 @@ bcrypt # hashing the passwords
 
 segno # QR Code
 pillow # image related operations
+resemblyzer==0.1.4
 

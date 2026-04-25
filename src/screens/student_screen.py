@@ -44,7 +44,7 @@ def student_dashboard():
         if sid not in stats_map:
             stats_map[sid]={"total":0,"attended":0}
         stats_map[sid]['total']+=1
-        if logs.get('is_present'):
+        if log.get('is_present'):
             stats_map[sid]['attended']+=1
     cols=st.columns(2)
     for i, sub_node in enumerate(subjects):
@@ -112,6 +112,8 @@ def student_screen():
     if "show_registration" not in st.session_state:
         st.session_state.show_registration = False
     photo_source=st.camera_input("Position your face in the center")
+    if photo_source is None:
+        st.session_state.show_registration = False
     if photo_source:
         img=np.array(Image.open(photo_source))
         with st.spinner('Ai is Scanning'):
@@ -121,15 +123,17 @@ def student_screen():
             elif num_faces>1:
                 st.warning('Multiple faces found')
             else:
-                if True in detected:
-                    index = detected.index(True)
+                if any(detected):
+                    index = next(i for i, val in enumerate(detected) if val)
                     student_id = all_ids[index]
+                
 
                     all_students = get_all_students()
                     student = next((s for s in all_students if s['student_id'] == student_id), None)
                 
 
                     if student:
+                        st.session_state.show_registration = False
                         st.session_state.is_logged_in=True
                         st.session_state.user_role='student'
                         st.session_state.student_data= student

@@ -63,32 +63,58 @@ def train_classifier(): # When a new student is added
     return bool(model_data)
 
 def predict_attendance(class_image_np):
-    encodings=get_face_embeddings(class_image_np)
+    encodings = get_face_embeddings(class_image_np)
+
+    if not encodings:
+        return [], [], 0
     
-    model_data=get_trained_model()
-    if not model_data:
+    model_data = get_trained_model()
+    if model_data is None or model_data == 0 or not isinstance(model_data, dict):
         return [], [], len(encodings)
-    clf=model_data['clf']
-    X_train=model_data['X']
-    y_train=model_data['y']
-    all_students = sorted(list(set(y_train)))
+
+    clf = model_data['clf']
+    X_train = model_data['X']
+    y_train = model_data['y']
+
+    detected = []
     detected_student_ids = []
+    unique_students = list(set(y_train))
 
+    # YOU NEED THIS LOOP: encodings is a list, encoding is a single face
     for encoding in encodings:
-        if len(all_students) >= 2:
-            predicted_id = int(clf.predict([encoding])[0])
+        predicted_id = None
+        
+        if len(unique_students) == 1:
+            predicted_id = int(unique_students[0])
         else:
-            predicted_id = int(all_students[0])
+            # Pass [encoding] as a 2D array for the classifier
+            predicted_id = int(clf.predict([encoding])[0])
 
-        student_embedding = X_train[y_train.index(predicted_id)]
-        best_match_score = np.linalg.norm(student_embedding - encoding)
+        # Get all embeddings for the predicted student to check distance
+        student_embeddings = [
+            X_train[i] for i, sid in enumerate(y_train)
+            if sid == predicted_id
+        ]
 
-        threshold = 0.6
-        if best_match_score <= threshold:
-            if predicted_id not in detected_student_ids:
-                detected_student_ids.append(predicted_id)
+        # Find the smallest distance (Euclidean distance)
+        min_distance = min(
+            np.linalg.norm(embedding - encoding)
+            for embedding in student_embeddings
+        )
 
-    return detected_student_ids, all_students, len(encodings)
+        # FINAL VERIFICATION
+        if min_distance <= 0.55: 
+            detected.append(True)
+            detected_student_ids.append(predicted_id)
+        else:
+            detected.append(False)
+            detected_student_ids.append(None)
+
+    # Move the return outside the for loop
+    return detected, detected_student_ids, len(encodings)
+
+    
+    
 
 
 

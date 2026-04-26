@@ -140,6 +140,7 @@ def student_screen():
                         st.toast(f"Welcome back {student['name']}")
                         time.sleep(1)
                         st.rerun()
+                        return
                 else:
                     st.info('Face not recognized! You might be a new student')
                     st.session_state.show_registration = True

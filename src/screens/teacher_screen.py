@@ -116,9 +116,9 @@ def teacher_tab_take_attendance():
                 all_detected_id={}
                 for idx, img in enumerate(st.session_state.attendance_images):
                     img_np=np.array(img.convert('RGB'))
-                    detected,_,_=predict_attendance(img_np)
-                    if detected:
-                        for sid in detected:
+                    detected,detected_student_ids,_=predict_attendance(img_np)
+                    for sid in detected_student_ids:
+                        if sid is not None:
                             student_id=int(sid)
 
                             all_detected_id.setdefault(student_id, []).append(f"Photo {idx+1}")
